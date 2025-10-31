@@ -3,6 +3,7 @@ package repository;
 import jdk.jfr.Event;
 import model.Evento;
 import java.sql.*;
+import java.util.Date;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,8 +38,12 @@ public class EventoRepository {
              PreparedStatement stmt = conexao.prepareStatement(sql)) {
             stmt.setString(1, evento.getNome());
             stmt.setString(2, evento.getDescricao());
-            stmt.setDate(3, Date.valueOf(evento.getDataInicio()));
-            stmt.setDate(4, Date.valueOf(evento.getDataFim()));
+            if (evento.getDataInicio() != null) {stmt.setDate(3, java.sql.Date.valueOf(evento.getDataInicio()));
+            } else {stmt.setNull(3, java.sql.Types.DATE);}
+
+            if (evento.getDataFim() != null) {stmt.setDate(4, java.sql.Date.valueOf(evento.getDataFim()));
+            } else {stmt.setNull(4, java.sql.Types.DATE);}
+
             stmt.setString(5, evento.getLocal());
             stmt.setString(6, evento.getCategoria());
             stmt.setString(7, evento.getStatus());
@@ -81,4 +86,33 @@ public class EventoRepository {
     public List<Evento> listarTodos() {
         return buscarEventos();
     }
+
+    public List<Evento> buscarPorData(java.sql.Date data) {
+        List<Evento> eventos = new ArrayList<>();
+        String sql = "SELECT * FROM Evento WHERE DATE(dataInicio) = ?";
+
+        try (Connection conn = MyJDBC.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setDate(1, data);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                Evento e = new Evento();
+                e.setId(rs.getInt("Evento_id"));
+                e.setNome(rs.getString("nome"));
+                e.setDescricao(rs.getString("descricao"));
+                e.setDataInicio(rs.getTimestamp("dataInicio").toLocalDateTime().toLocalDate());
+                e.setDataFim(rs.getTimestamp("dataFim").toLocalDateTime().toLocalDate());
+                e.setLocal(rs.getString("local"));
+                e.setCategoria(rs.getString("categoria"));
+                e.setStatus(rs.getString("status"));
+                eventos.add(e);
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return eventos;
+    }
+
 }

@@ -4,7 +4,9 @@ import model.Evento;
 import repository.EventoRepository;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.sql.Date;
 import java.util.List;
+import java.sql.Date;
 
 public class EventoService {
     private EventoRepository eventoRepository = new EventoRepository();
@@ -77,5 +79,9 @@ public class EventoService {
             e.printStackTrace();
             return false;
         }
+    }
+
+    public List<Evento> buscarPorData(Date data) {
+        return eventoRepository.buscarPorData(data);
     }
 }
